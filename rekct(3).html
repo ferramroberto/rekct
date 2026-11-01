@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="it"><head><meta charset="utf-8"><title>rekct</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{--bg:#faf7f2;--c:#fff;--t:#2b2b2b;--m:#777;--a:#d9622b;--l:#e6dfd3}
+@media(prefers-color-scheme:dark){:root{--bg:#1f1d1b;--c:#2a2826;--t:#eee;--m:#aaa;--l:#444}}
+*{box-sizing:border-box}body{margin:0;font:15px system-ui,Segoe UI,sans-serif;background:var(--bg);color:var(--t)}
+header{display:flex;gap:16px;align-items:center;padding:12px 20px;background:var(--c);border-bottom:1px solid var(--l);flex-wrap:wrap}
+h1{margin:0;font-size:24px;color:var(--a);letter-spacing:1px}
+nav button,.f button,.bar button{border:1px solid var(--l);background:var(--c);color:var(--t);padding:7px 13px;border-radius:8px;cursor:pointer;font:inherit}
+nav button.on,.f button.on{background:var(--a);color:#fff;border-color:var(--a)}
+.p{background:var(--a)!important;color:#fff!important;border-color:var(--a)!important}
+main{max-width:1180px;margin:18px auto;padding:0 16px}.tab{display:none}.tab.on{display:block}
+table{width:100%;border-collapse:collapse;background:var(--c);border-radius:10px;overflow:hidden}
+td,th{padding:8px 10px;border-bottom:1px solid var(--l);text-align:left;vertical-align:middle}
+select,input,textarea{font:inherit;color:var(--t);background:var(--bg);border:1px solid var(--l);border-radius:6px;padding:6px;width:100%}
+.k,.m{color:var(--m);font-size:13px}.bar{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;align-items:center}
+.f{margin-left:auto;display:flex;gap:6px}.s input{width:auto}td input[type=checkbox]{width:18px;height:18px}
+tr.d{opacity:.4}.card{background:var(--c);padding:14px;border-radius:10px;margin:14px 0;display:grid;gap:8px;grid-template-columns:2fr 1fr 1fr 1fr}
+.card .w{grid-column:1/-1}.pr{display:none}
+@media print{header,.bar,.card,.no{display:none!important}.pr{display:block}body{background:#fff;color:#000}
+table{background:#fff}td,th{border-color:#bbb}select,input{border:0;background:none;color:#000;appearance:none;padding:0}tr.d{display:none}}
+.c{display:flex;gap:6px;align-items:center}.c input{width:60px;text-align:center}
+</style></head><body>
+<header><h1>rekct</h1>
+<nav><button data-t="menu" onclick="tab('menu')">📅 Menu settimanale</button>
+<button data-t="spesa" onclick="tab('spesa')">🛒 Lista della spesa</button>
+<button data-t="ric" onclick="tab('ric')">📖 Ricette</button></nav>
+<div class="f no" id="fl"></div></header>
+<main>
+<section class="tab" id="menu"><h2 class="pr">rekct – Menu settimanale</h2>
+<div class="bar"><input id="ms" placeholder="🔍 Cerca ricetta nei menu…" oninput="render()" style="max-width:230px"><label class="s">👥 Persone: <input type="number" id="pp" min="1" style="width:70px" onchange="allP(this.value)"></label><button class="p" onclick="rnd()">🎲 Compila a caso</button><button onclick="clr()">Svuota</button>
+<button onclick="print()">🖨️ Stampa / PDF</button><span class="m">Il filtro in alto restringe le scelte (Bimbi, Proteico light).</span></div>
+<table><thead><tr><th></th><th>Colazione · persone</th><th>Pranzo · persone</th><th>Cena · persone</th><th class="k">kcal/persona</th></tr></thead><tbody id="mt"></tbody></table></section>
+
+<section class="tab" id="spesa"><h2 class="pr">rekct – Lista della spesa</h2>
+<div class="bar">
+<button class="p" onclick="gen()">⚙️ Genera dal menu</button><button onclick="addI()">＋ Aggiungi voce</button>
+<button onclick="print()">🖨️ Stampa / PDF</button></div>
+<p class="m no">Modifica quantità e nomi a piacere. Spunta «già a casa» per escludere una voce dalla stampa. In stampa scegli «Salva come PDF».</p>
+<table><thead><tr><th class="no">già a casa</th><th style="width:90px">Qtà</th><th style="width:100px">Unità</th><th>Prodotto</th><th class="no"></th></tr></thead><tbody id="st"></tbody></table></section>
+
+<section class="tab" id="ric"><div class="bar no"><input id="rs" placeholder="🔍 Cerca ricetta…" oninput="render()" style="max-width:240px"><span class="m">Le ricette sono per 1 persona. Tag: 👶 Bimbi · 💪 Proteico light · 🍝 Classico.</span></div>
+<div class="card"><b class="w">Nuova ricetta</b>
+<input id="rn" placeholder="Nome ricetta" class="w" style="grid-column:1/-1">
+<select id="rt"><option value="b">👶 Bimbi</option><option value="p">💪 Proteico light</option><option value="c">🍝 Classico</option><option value="x">☕ Colazione</option></select>
+<input id="rk" type="number" placeholder="kcal"><input id="rp" type="number" placeholder="proteine g"><button class="p" onclick="addR()">Salva</button>
+<textarea id="ri" class="w" rows="3" placeholder="Ingredienti separati da virgola o a capo, es: 150 g petto di pollo, 200 g zucchine, 1 cucchiaio olio evo"></textarea></div>
+<div class="card"><b class="w">Importa dal database online TheMealDB</b>
+<input id="iq" placeholder="Cerca (in inglese, es. chicken) – vuoto = casuale" style="grid-column:1/3">
+<select id="it"><option value="b">👶 Bimbi</option><option value="p">💪 Proteico light</option><option value="c">🍝 Classico</option><option value="x">☕ Colazione</option></select>
+<button class="p" onclick="imp()">Importa</button><span class="m w" id="im"></span></div>
+<table><tbody id="rt2"></tbody></table></section>
+</main>
+<script>
+const R0=[
+["Petto di pollo alla piastra con zucchine","p",280,38,"150 g petto di pollo, 200 g zucchine, 1 cucchiaio olio evo, 1 pz limone"],
+["Frittata di albumi e spinaci","p",190,24,"120 g albumi, 150 g spinaci, 20 g parmigiano"],
+["Salmone al forno con asparagi","p",340,34,"150 g salmone, 200 g asparagi, 1 pz limone"],
+["Insalata di tonno e ceci","p",320,30,"80 g tonno al naturale, 100 g ceci cotti, 100 g pomodorini, 50 g rucola"],
+["Merluzzo con pomodorini","p",220,32,"200 g merluzzo, 150 g pomodorini, 10 g olive"],
+["Tacchino con insalata mista","p",260,36,"150 g fesa di tacchino, 150 g insalata mista, 100 g pomodori"],
+["Zuppa di lenticchie e verdure","p",310,20,"80 g lenticchie, 100 g carote, 100 g sedano, 150 g passata di pomodoro"],
+["Gamberi e zucchine saltati","p",210,30,"180 g gamberi, 200 g zucchine, 1 pz aglio"],
+["Pasta al pomodoro","b",380,12,"70 g pasta, 150 g passata di pomodoro, 10 g parmigiano, 1 cucchiaio olio evo"],
+["Polpettine di pollo al forno","b",300,28,"120 g macinato di pollo, 30 g uova, 20 g pangrattato"],
+["Mini hamburger di legumi","b",290,14,"100 g ceci cotti, 20 g pangrattato, 30 g uova, 100 g carote"],
+["Frittatine di zucchine","b",240,16,"80 g uova, 100 g zucchine, 20 g parmigiano"],
+["Risotto alla zucca","b",360,9,"70 g riso, 150 g zucca, 10 g parmigiano, 300 ml brodo vegetale"],
+["Crocchette di pesce e patate","b",310,22,"120 g merluzzo, 100 g patate, 20 g pangrattato"],
+["Pizzette di pane e mozzarella","b",330,16,"60 g pane, 50 g passata di pomodoro, 60 g mozzarella"],
+["Pasta e fagioli","c",420,18,"60 g pasta, 100 g fagioli borlotti, 100 g passata di pomodoro"],
+["Spezzatino di manzo con patate","c",450,32,"150 g manzo, 200 g patate, 100 g passata di pomodoro, 50 g cipolle"],
+["Penne alle verdure","c",390,13,"80 g penne, 100 g zucchine, 100 g melanzane, 100 g pomodorini"]];
+const R1=[
+["Spaghetti alla carbonara","c",520,22,"90 g spaghetti, 50 g guanciale, 40 g uova, 25 g pecorino, 2 g pepe nero"],
+["Spaghetti aglio, olio e peperoncino","c",430,12,"90 g spaghetti, 1 pz aglio, 1 cucchiaio olio evo, 1 pz peperoncino"],
+["Bucatini all’amatriciana","c",500,19,"90 g bucatini, 50 g guanciale, 150 g passata di pomodoro, 20 g pecorino"],
+["Cacio e pepe","c",510,21,"90 g spaghetti, 50 g pecorino, 2 g pepe nero"],
+["Lasagne alla bolognese","c",560,28,"80 g sfoglia lasagne, 80 g macinato di manzo, 100 g passata di pomodoro, 150 ml latte, 15 g burro, 15 g farina, 20 g parmigiano"],
+["Tagliatelle al ragù","c",520,24,"90 g tagliatelle, 80 g macinato di manzo, 100 g passata di pomodoro, 30 g carote, 30 g sedano, 30 g cipolle"],
+["Risotto alla milanese","c",450,11,"80 g riso, 1 pz zafferano, 20 g burro, 20 g parmigiano, 300 ml brodo vegetale"],
+["Risotto ai funghi","c",420,12,"80 g riso, 150 g funghi, 15 g burro, 20 g parmigiano, 300 ml brodo vegetale"],
+["Risotto agli asparagi","c",410,11,"80 g riso, 150 g asparagi, 15 g burro, 20 g parmigiano, 300 ml brodo vegetale"],
+["Gnocchi al pomodoro","c",380,10,"200 g gnocchi di patate, 150 g passata di pomodoro, 5 g basilico, 10 g parmigiano"],
+["Gnocchi al gorgonzola","c",520,16,"200 g gnocchi di patate, 60 g gorgonzola, 50 ml panna"],
+["Pasta alla norma","c",470,15,"80 g pasta, 150 g melanzane, 100 g passata di pomodoro, 30 g ricotta salata"],
+["Spaghetti alla puttanesca","c",450,13,"80 g spaghetti, 100 g passata di pomodoro, 15 g olive, 10 g capperi, 2 pz filetti di acciughe"],
+["Trofie al pesto con patate e fagiolini","c",480,14,"80 g trofie, 30 g pesto, 100 g patate, 80 g fagiolini"],
+["Pasta al tonno","c",440,22,"80 g pasta, 60 g tonno sott’olio, 100 g passata di pomodoro"],
+["Pasta al forno","c",560,26,"90 g pasta, 60 g macinato di manzo, 100 g passata di pomodoro, 50 g mozzarella, 20 g parmigiano"],
+["Spaghetti alle vongole","c",460,24,"90 g spaghetti, 250 g vongole, 1 pz aglio, 1 cucchiaio olio evo"],
+["Pasta e ceci","c",400,17,"60 g pasta, 100 g ceci cotti, 100 g passata di pomodoro, 1 pz rosmarino"],
+["Minestrone di verdure","c",180,6,"100 g patate, 100 g zucchine, 100 g carote, 80 g fagiolini, 50 g sedano"],
+["Cannelloni ricotta e spinaci","c",480,20,"80 g cannelloni, 100 g ricotta, 100 g spinaci, 100 g passata di pomodoro"],
+["Orecchiette alle cime di rapa","c",430,15,"80 g orecchiette, 200 g cime di rapa, 2 pz filetti di acciughe"],
+["Tortellini in brodo","c",350,18,"120 g tortellini, 300 ml brodo di carne, 15 g parmigiano"],
+["Ravioli ricotta e spinaci burro e salvia","c",430,17,"150 g ravioli ricotta e spinaci, 15 g burro, 5 g salvia"],
+["Pizzoccheri della Valtellina","c",620,24,"100 g pizzoccheri, 80 g patate, 80 g verza, 50 g formaggio casera, 20 g burro"],
+["Polenta taragna","c",480,20,"100 g farina taragna, 60 g formaggio casera, 15 g burro"],
+["Polenta e salsiccia","c",560,24,"100 g farina di mais, 120 g salsiccia, 100 g passata di pomodoro"],
+["Pizza margherita","c",600,22,"120 g farina, 100 g passata di pomodoro, 80 g mozzarella, 5 g basilico, 3 g lievito di birra"],
+["Parmigiana di melanzane","c",420,20,"250 g melanzane, 100 g passata di pomodoro, 80 g mozzarella, 25 g parmigiano"],
+["Pollo arrosto con patate","c",480,36,"200 g cosce di pollo, 200 g patate, 1 cucchiaio olio evo, 1 pz rosmarino"],
+["Cotoletta alla milanese","c",520,34,"150 g fettine di vitello, 40 g uova, 40 g pangrattato, 15 g burro"],
+["Saltimbocca alla romana","c",360,34,"120 g fettine di vitello, 30 g prosciutto crudo, 5 g salvia, 10 g burro"],
+["Scaloppine al limone","c",330,32,"150 g fettine di vitello, 15 g farina, 1 pz limone, 10 g burro"],
+["Polpette al sugo","c",440,30,"120 g macinato di manzo, 30 g uova, 20 g pangrattato, 20 g parmigiano, 150 g passata di pomodoro"],
+["Brasato di manzo con polenta","c",600,40,"180 g manzo, 100 ml vino rosso, 50 g carote, 50 g cipolle, 60 g farina di mais"],
+["Pollo alla cacciatora","c",400,36,"200 g pollo, 100 g passata di pomodoro, 50 g olive, 50 g cipolle"],
+["Frittata di cipolle","c",260,17,"100 g uova, 100 g cipolle, 1 cucchiaio olio evo"],
+["Orata al forno con patate","c",410,36,"200 g orata, 150 g patate, 1 pz limone, 10 g olive"],
+["Frittura di calamari","c",420,26,"150 g calamari, 30 g farina, 1 pz limone"],
+["Baccalà alla livornese","c",330,34,"200 g baccalà, 150 g passata di pomodoro, 10 g capperi"],
+["Cozze alla marinara","c",260,30,"400 g cozze, 1 pz aglio, 1 pz limone, 5 g prezzemolo"],
+["Insalata caprese","c",300,18,"100 g pomodori, 80 g mozzarella, 5 g basilico, 1 cucchiaio olio evo"],
+["Peperonata","c",150,3,"250 g peperoni, 50 g cipolle, 100 g passata di pomodoro"],
+["Verdure grigliate","c",120,4,"100 g zucchine, 100 g melanzane, 100 g peperoni, 1 cucchiaio olio evo"],
+["Insalata di riso","c",450,12,"80 g riso, 60 g tonno sott’olio, 50 g pomodorini, 30 g mais, 30 g olive"],
+["Insalata di pasta","c",430,14,"80 g pasta, 50 g mozzarella, 80 g pomodorini, 30 g olive, 5 g basilico"],
+["Caponata siciliana","c",250,4,"200 g melanzane, 50 g sedano, 50 g cipolle, 50 g passata di pomodoro, 20 g olive"],
+["Uova in purgatorio","c",280,17,"120 g uova, 200 g passata di pomodoro, 1 pz cipolla"],
+["Pasta e patate","c",430,13,"60 g pasta, 150 g patate, 30 g provola"],
+["Tiramisù","c",420,8,"40 g savoiardi, 50 g mascarpone, 30 g uova, 30 ml caffè, 10 g cacao"],
+["Panna cotta","c",330,4,"100 ml panna, 20 g zucchero, 1 pz gelatina, 30 g fragole"],
+["Bresaola, rucola e grana","p",220,28,"80 g bresaola, 50 g rucola, 15 g grana, 1 pz limone"],
+["Hamburger di manzo magro con insalata","p",300,34,"150 g macinato di manzo magro, 150 g insalata mista, 100 g pomodori"],
+["Spiedini di pollo e peperoni","p",260,36,"150 g petto di pollo, 150 g peperoni, 1 cucchiaio olio evo"],
+["Omelette di albumi e funghi","p",170,22,"120 g albumi, 120 g funghi, 1 cucchiaio olio evo"],
+["Tonno scottato al sesamo","p",300,36,"150 g tonno fresco, 10 g sesamo, 150 g insalata mista"],
+["Orata al cartoccio con pomodorini","p",250,34,"200 g orata, 150 g pomodorini, 1 pz limone"],
+["Branzino al forno con verdure","p",270,34,"200 g branzino, 150 g zucchine, 100 g pomodorini"],
+["Seppie con piselli","p",230,32,"200 g seppie, 100 g piselli, 100 g passata di pomodoro"],
+["Polpo e patate","p",260,30,"150 g polpo, 100 g patate, 1 pz limone"],
+["Insalata di pollo e avocado","p",330,34,"120 g petto di pollo, 60 g avocado, 100 g insalata mista, 1 pz limone"],
+["Fiocchi di latte e verdure","p",160,20,"150 g fiocchi di latte, 100 g cetrioli, 100 g pomodori"],
+["Ricotta e spinaci al forno","p",250,24,"150 g ricotta magra, 150 g spinaci, 20 g parmigiano"],
+["Tofu saltato con verdure","p",250,22,"150 g tofu, 150 g broccoli, 100 g carote, 1 cucchiaio salsa di soia"],
+["Seitan alla piastra con zucchine","p",230,34,"120 g seitan, 200 g zucchine, 1 pz limone"],
+["Zuppa di ceci e spinaci","p",280,16,"100 g ceci cotti, 150 g spinaci, 100 g passata di pomodoro"],
+["Insalata di quinoa e ceci","p",340,16,"50 g quinoa, 80 g ceci cotti, 100 g cetrioli, 100 g pomodorini"],
+["Pollo al limone","p",250,37,"150 g petto di pollo, 1 pz limone, 5 g prezzemolo"],
+["Tacchino al curry con riso basmati","p",360,36,"150 g fesa di tacchino, 40 g riso basmati, 1 cucchiaino curry, 100 ml latte di cocco light"],
+["Straccetti di manzo con rucola","p",290,36,"150 g manzo, 50 g rucola, 50 g pomodorini, 1 cucchiaio olio evo"],
+["Filetto di maiale ai ferri con spinaci","p",270,34,"150 g filetto di maiale, 200 g spinaci"],
+["Uova sode con insalata","p",230,19,"120 g uova, 150 g insalata mista, 100 g pomodori"],
+["Vitello tonnato light","p",290,38,"120 g vitello, 40 g tonno al naturale, 50 g yogurt greco, 10 g capperi"],
+["Carpaccio di manzo con rucola e grana","p",240,30,"100 g carpaccio di manzo, 50 g rucola, 15 g grana, 1 pz limone"],
+["Zuppa di pesce","p",290,36,"200 g pesce misto, 150 g passata di pomodoro, 1 pz aglio"],
+["Platessa al limone con broccoli","p",210,32,"200 g platessa, 1 pz limone, 200 g broccoli"],
+["Frittata al forno con verdure","p",230,20,"100 g uova, 60 g albumi, 100 g zucchine, 50 g peperoni"],
+["Polpette di tonno e ricotta","p",250,28,"80 g tonno al naturale, 80 g ricotta magra, 20 g pangrattato, 150 g insalata mista"],
+["Yogurt greco con frutta e noci","p",250,20,"200 g yogurt greco, 100 g frutti di bosco, 15 g noci"],
+["Pastina in brodo","b",220,9,"50 g pastina, 300 ml brodo vegetale, 10 g parmigiano"],
+["Passato di verdure con crostini","b",230,7,"200 g patate, 100 g carote, 100 g zucchine, 30 g pane"],
+["Bastoncini di pesce al forno","b",280,24,"120 g merluzzo, 30 g pangrattato, 20 g uova"],
+["Nuggets di pollo al forno","b",290,30,"120 g petto di pollo, 30 g pangrattato, 20 g uova"],
+["Crespelle prosciutto e formaggio","b",340,18,"40 g farina, 100 ml latte, 30 g uova, 30 g prosciutto cotto, 30 g formaggio"],
+["Pasta burro e parmigiano","b",400,14,"70 g pasta, 10 g burro, 15 g parmigiano"],
+["Pasta zucchine e ricotta","b",390,16,"70 g pasta, 100 g zucchine, 50 g ricotta"],
+["Riso e piselli","b",330,11,"60 g riso, 100 g piselli, 10 g parmigiano"],
+["Gnocchi burro e salvia","b",390,9,"200 g gnocchi di patate, 10 g burro, 5 g salvia, 10 g parmigiano"],
+["Tortino di patate e prosciutto","b",300,14,"150 g patate, 40 g prosciutto cotto, 30 g mozzarella"],
+["Polpette di zucchine e ricotta","b",250,13,"100 g zucchine, 60 g ricotta, 20 g pangrattato, 20 g parmigiano"],
+["Maccheroni al formaggio","b",450,19,"80 g maccheroni, 50 g formaggio, 100 ml latte"],
+["Frittata di pasta","b",360,17,"60 g pasta, 80 g uova, 20 g parmigiano"],
+["Pasta al pesto","b",430,13,"70 g pasta, 30 g pesto, 50 g pomodorini"],
+["Pomodori ripieni di riso","b",280,7,"200 g pomodori, 40 g riso, 10 g parmigiano"],
+["Piadina prosciutto e mozzarella","b",390,20,"1 pz piadina, 40 g prosciutto cotto, 50 g mozzarella"],
+["Hamburger di pollo e carote","b",270,26,"120 g macinato di pollo, 50 g carote, 20 g pangrattato"],
+["Pasta e zucchine","b",360,11,"70 g pasta, 120 g zucchine, 10 g parmigiano"],
+["Salmone con purè","b",400,26,"120 g salmone, 150 g patate, 30 ml latte, 10 g burro"],
+["Tagliatelle ricotta e spinaci","b",420,17,"70 g tagliatelle, 60 g ricotta, 60 g spinaci"],
+["Passato di legumi con pastina","b",290,14,"80 g legumi misti cotti, 30 g pastina, 100 ml brodo vegetale"],
+["Pane e frittata","b",310,16,"60 g pane, 80 g uova, 100 g pomodori"],
+["Risotto al ragù","c",560,24,"80 g riso, 80 g macinato di manzo, 100 g passata di pomodoro, 30 g cipolle, 15 g burro, 20 g parmigiano, 300 ml brodo di carne"],
+["Tortellini al ragù","c",560,26,"120 g tortellini, 80 g macinato di manzo, 100 g passata di pomodoro, 20 g parmigiano"],
+["Tortellini alla panna","c",580,22,"120 g tortellini, 60 ml panna, 30 g prosciutto cotto, 20 g parmigiano"],
+["Cappuccino e cornetto","x",330,9,"1 pz cornetto, 150 ml latte, 1 pz caffè"],
+["Cappuccino e brioche","x",320,9,"1 pz brioche, 150 ml latte, 1 pz caffè"],
+["Latte e biscotti","x",280,10,"200 ml latte, 40 g biscotti secchi"],
+["Latte e cereali","x",260,9,"200 ml latte, 40 g cereali"],
+["Latte macchiato e fette biscottate","x",230,8,"150 ml latte, 1 pz caffè, 3 pz fette biscottate, 20 g marmellata"],
+["Porridge di avena e banana","x",310,12,"50 g fiocchi di avena, 200 ml latte, 1 pz banana"],
+["Overnight oats ai frutti di bosco","x",330,15,"40 g fiocchi di avena, 100 g yogurt, 100 ml latte, 10 g semi di chia, 50 g frutti di bosco"],
+["Yogurt greco, miele e noci","x",250,17,"150 g yogurt greco, 10 g miele, 15 g noci"],
+["Yogurt con muesli e frutta","x",300,12,"150 g yogurt, 40 g muesli, 100 g frutta fresca"],
+["Pane tostato, burro e marmellata","x",260,6,"50 g pane, 10 g burro, 20 g marmellata"],
+["Pane e crema di nocciole","x",270,6,"50 g pane, 20 g crema di nocciole"],
+["Fette biscottate e marmellata","x",210,4,"3 pz fette biscottate, 30 g marmellata"],
+["Pane, ricotta e miele","x",250,10,"50 g pane, 60 g ricotta, 10 g miele"],
+["Pancake con sciroppo d’acero","x",340,9,"60 g farina, 100 ml latte, 30 g uova, 10 g zucchero, 10 g sciroppo d’acero"],
+["Uova strapazzate e pane tostato","x",340,22,"120 g uova, 40 g pane, 5 g burro"],
+["Avocado toast con uovo","x",360,14,"50 g pane integrale, 60 g avocado, 60 g uova"],
+["Toast prosciutto e formaggio","x",330,19,"60 g pane, 40 g prosciutto cotto, 30 g formaggio"],
+["Pane e prosciutto cotto","x",230,14,"60 g pane, 50 g prosciutto cotto"],
+["Smoothie banana e frutti di bosco","x",240,8,"1 pz banana, 100 g frutti di bosco, 150 g yogurt"],
+["Frullato proteico alla banana","x",320,30,"200 ml latte parzialmente scremato, 30 g proteine in polvere, 1 pz banana"],
+["Ciambellone e latte","x",330,10,"80 g ciambellone, 200 ml latte"],
+["Torta di mele e caffè","x",300,5,"80 g torta di mele, 1 pz caffè"],
+["Crostata e caffè","x",290,4,"70 g crostata, 1 pz caffè"],
+["Ricotta, frutta e miele","x",230,12,"100 g ricotta, 100 g frutta fresca, 10 g miele"],
+["Fiocchi di latte, frutta e mandorle","x",250,20,"150 g fiocchi di latte, 100 g frutta fresca, 15 g mandorle"],
+["Albumi e pane integrale","x",230,28,"120 g albumi, 40 g pane integrale"],
+["Frutta fresca e frutta secca","x",230,5,"150 g frutta fresca, 20 g mandorle"],
+["French toast","x",350,14,"2 pz fette di pane in cassetta, 60 g uova, 80 ml latte, 10 g burro"],
+["Crepes con marmellata","x",300,8,"40 g farina, 100 ml latte, 30 g uova, 30 g marmellata"]];
+const D=['Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato','Domenica'],SL=3,TN={x:'☕ Colazione',b:'👶 Bimbi',p:'💪 Proteico light',c:'🍝 Classico'};
+let S=null,F='',$=id=>document.getElementById(id);
+try{S=JSON.parse(localStorage.rekct)}catch(e){}
+S=S||{rec:[],menu:{},shop:[],ppl:2};S.pers=S.pers||{};
+if(S.v!=4){R0.concat(R1).forEach(x=>{if(!S.rec.some(r=>r.n==x[0]))S.rec.push({n:x[0],t:x[1],k:x[2],p:x[3],i:x[4]})});S.v=4}
+const save=()=>{try{localStorage.rekct=JSON.stringify(S)}catch(e){}};
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+function tab(n){document.querySelectorAll('.tab').forEach(e=>e.classList.toggle('on',e.id==n));
+document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==n));render()}
+function opts(v,s){return '<option value="">—</option>'+(s==2?['x']:['b','p','c']).map(t=>{
+const l=S.rec.map((r,i)=>[r,i]).filter(([r,i])=>r.t==t&&(s==2||!F||F=='x'||F==t||String(i)===String(v))&&(String(i)===String(v)||r.n.toLowerCase().includes($('ms').value.toLowerCase())));
+return l.length?`<optgroup label="${TN[t]}">`+l.map(([r,i])=>`<option value="${i}"${String(i)===String(v)?' selected':''}>${esc(r.n)}</option>`).join('')+'</optgroup>':''}).join('')}
+function setM(k,v){S.menu[k]=v===''?'':+v;save();render()}
+function rnd(){for(let d=0;d<7;d++)for(let s=0;s<SL;s++){const l=S.rec.map((r,i)=>[r,i]).filter(([r])=>s==2?r.t=='x':r.t!='x'&&(!F||F=='x'||r.t==F));
+if(l.length)S.menu[d+'-'+s]=l[Math.floor(Math.random()*l.length)][1]}save();render()}
+function setP(k,v){S.pers[k]=Math.max(1,+v||1);save();render()}
+function allP(v){S.ppl=Math.max(1,+v||1);S.pers={};save();render()}
+function clr(){S.menu={};save();render()}
+function parse(s){const m=s.trim().match(/^([\d.,]+)\s*(g|kg|ml|l|pz|cucchiaio|cucchiai)?\s+(.+)$/i);
+return m?{q:parseFloat(m[1].replace(',','.')),u:(m[2]||'pz').toLowerCase(),n:m[3].trim()}:{q:1,u:'pz',n:s.trim()}}
+function gen(){const a={};for(let d=0;d<7;d++)for(let s=0;s<SL;s++){const r=S.rec[S.menu[d+'-'+s]];if(!r)continue;
+r.i.split(/[,\n]/).filter(x=>x.trim()).forEach(x=>{const p=parse(x),k=p.n.toLowerCase()+'|'+p.u;
+a[k]=a[k]||{n:p.n,u:p.u,q:0};a[k].q+=p.q*(S.pers[d+'-'+s]||S.ppl)})}
+S.shop=S.shop.filter(x=>x.m).concat(Object.values(a).sort((x,y)=>x.n.localeCompare(y.n)).map(x=>({...x,q:Math.round(x.q*10)/10})));
+save();render()}
+function addI(){S.shop.push({n:'',q:1,u:'pz',m:1});save();render()}
+function upd(i,f,v){S.shop[i][f]=f=='q'?(parseFloat(v)||0):v;save()}
+function tog(i,c){S.shop[i].d=c;save();render()}
+function del(i){S.shop.splice(i,1);save();render()}
+function addR(){const n=$('rn').value.trim(),i=$('ri').value.trim();if(!n||!i)return alert('Inserisci nome e ingredienti');
+S.rec.push({n,t:$('rt').value,k:$('rk').value||0,p:$('rp').value||0,i});save();['rn','rk','rp','ri'].forEach(x=>$(x).value='');render()}
+function delR(i){if(!confirm('Eliminare la ricetta?'))return;S.rec.splice(i,1);
+for(const k in S.menu){const m=S.menu[k];if(m===i)S.menu[k]='';else if(m>i)S.menu[k]=m-1}save();render()}
+async function imp(){const q=$('iq').value.trim(),m=$('im');m.textContent='Ricerca in corso…';
+const u=q?'https://www.themealdb.com/api/json/v1/1/search.php?s='+encodeURIComponent(q):'https://www.themealdb.com/api/json/v1/1/random.php';
+try{const j=await(await fetch(u)).json();if(!j.meals){m.textContent='Nessun risultato.';return}
+j.meals.slice(0,5).forEach(x=>{const l=[];for(let i=1;i<=20;i++){const a=(x['strIngredient'+i]||'').trim(),e=(x['strMeasure'+i]||'').trim();if(!a)continue;
+const g=e.match(/^(\d+(?:\.\d+)?)\s*(g|kg|ml|l)$/i);l.push(g?`${g[1]} ${g[2]} ${a}`:`1 pz ${a}${e?' ('+e+')':''}`)}
+S.rec.push({n:x.strMeal,t:$('it').value,k:0,p:0,i:l.join(', ')})});
+save();m.textContent=`Importate ${Math.min(5,j.meals.length)} ricette (ingredienti in inglese, modificabili).`;render()}
+catch(e){m.textContent='Errore: serve una connessione internet.'}}
+function render(){
+$('fl').innerHTML=[['','Tutte'],['b','👶 Bimbi'],['p','💪 Proteico'],['c','🍝 Classico'],['x','☕ Colazione']].map(([k,l])=>`<button class="${F==k?'on':''}" onclick="F='${k}';render()">${l}</button>`).join('');
+$('mt').innerHTML=D.map((d,di)=>{let kc=0;const c=[2,0,1].map(s=>{const k=di+'-'+s,v=S.menu[k];if(v!==undefined&&v!==''&&S.rec[v])kc+=+S.rec[v].k;
+return `<td><div class="c"><select onchange="setM('${k}',this.value)">${opts(v,s)}</select><input type="number" min="1" title="Persone" value="${S.pers[k]||S.ppl}" onchange="setP('${k}',this.value)"></div></td>`}).join('');return `<tr><th>${d}</th>${c}<td class="k">${kc||''}</td></tr>`}).join('');
+$('pp').value=S.ppl;
+$('st').innerHTML=S.shop.map((x,i)=>`<tr class="${x.d?'d':''}"><td class="no"><input type="checkbox" ${x.d?'checked':''} onchange="tog(${i},this.checked)"></td>
+<td><input value="${x.q}" onchange="upd(${i},'q',this.value)"></td><td><input value="${esc(x.u)}" onchange="upd(${i},'u',this.value)"></td>
+<td><input value="${esc(x.n)}" onchange="upd(${i},'n',this.value)"></td><td class="no"><button onclick="del(${i})">✕</button></td></tr>`).join('')||'<tr><td colspan="5" class="m">Compila il menu, poi premi «Genera dal menu».</td></tr>';
+$('rt2').innerHTML=S.rec.map((r,i)=>[r,i]).filter(([r])=>(!F||r.t==F)&&r.n.toLowerCase().includes($('rs').value.toLowerCase())).map(([r,i])=>`<tr><td><b>${esc(r.n)}</b><br><span class="m">${esc(r.i)}</span></td>
+<td>${TN[r.t]}</td><td class="m">${r.k?r.k+' kcal':''}<br>${r.p?r.p+' g prot.':''}</td><td><button onclick="delR(${i})">✕</button></td></tr>`).join('')}
+tab('menu');
+</script></body></html>
